@@ -1,0 +1,15 @@
+<html>
+    <body>
+        <p>
+            {% for info in personaje %}
+                <li>{{info}}</li>
+            {% endfor %}
+            {% for new_episodio in lista_episodios %}
+                <li><a href="{% url 'episode' new_episodio.id %}">{{new_episodio.name}}</a> </li>
+            {% endfor %}
+            <li><a href="{% url 'locations' lugar.id %}">{{lugar.name}}</a> </li>
+            <li><a href="{% url 'locations' location.id %}">{{location.name}}</a> </li>
+            <img src="{{imagen}}" alt="">
+        </p>
+    </body>
+</html>

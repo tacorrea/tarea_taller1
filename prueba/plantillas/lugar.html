@@ -1,0 +1,13 @@
+<html>
+    <body>
+        <p>
+            <li>{{lugar.name}}</li>
+            <li>{{lugar.dimension}}</li>
+            <li>{{lugar.tipo}}</li>
+            <li>{{lugar.name}}</li>
+            {% for info_personaje in lista_personajes %}
+                <li><a href="{% url 'character' info_personaje.id %}">{{info_personaje.name}}</a> </li>
+            {% endfor %}
+        </p>
+    </body>
+</html>

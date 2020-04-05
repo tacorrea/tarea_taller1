@@ -1,0 +1,12 @@
+<html>
+    <body>
+        <p>
+            {% for info in episodio %}
+                <li>{{info}}</li>
+            {% endfor %}
+            {% for info_personaje in lista_personajes %}
+                <li><a href="{% url 'character' info_personaje.id %}">{{info_personaje.name}}</a> </li>
+            {% endfor %}
+        </p>
+    </body>
+</html>

@@ -1,0 +1,34 @@
+<html>
+    <body>
+        {% include "barra.html" %}
+        <p>
+            {% if busqueda_personajes != null %}
+                {% for personaje in busqueda_personajes %}
+                    <li><a href="{% url 'character' personaje.id %}">{{personaje.name}}</a> </li>
+                {% endfor %}
+            {% endif %}
+        </p>
+        <p>
+            {% if busqueda_lugares != null %}
+                {% for lugar in busqueda_lugares %}
+                    <li><a href="{% url 'locations' lugar.id %}">{{lugar.name}}</a> </li>
+                {% endfor %}
+            {% endif %}
+        </p>
+        <p>
+            {% if busqueda_episodios != null %}
+                {% for episodio in busqueda_episodios %}
+                    <li><a href="{% url 'episode' episodio.id %}">{{episodio.name}}</a> </li>
+                {% endfor %}
+            {% endif %}
+        </p>
+        <p>
+        {% for info in episodios %}
+            <li><a href="{% url 'episode' info.id %}">{{info.name}}</a> </li>
+            <li>{{info.air_date}}</li>
+            <li>{{info.episode}}</li>
+        {% endfor %}
+        
+        </p>
+    </body>
+</html>
