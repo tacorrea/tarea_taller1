@@ -43,7 +43,7 @@ class Location:
         self.id = ""
 
 def principal(request):
-    response = requests.get(f"https://rickandmortyapi.com/api/episode/")
+    response = requests.get(f"https://integracion-rick-morty-api.herokuapp.com/api/episode")
     data = json.loads(response.text.encode("utf-8"))
     data = data["results"]
     episode_list = []
@@ -59,21 +59,21 @@ def principal(request):
         lista_resultados_lugares = []
         print(queryset)
         print("ahyak")
-        response = requests.get(f"https://rickandmortyapi.com/api/episode/")
+        response = requests.get(f"https://integracion-rick-morty-api.herokuapp.com/api/episode")
         data = json.loads(response.text.encode("utf-8"))
         data = data["results"]
         for episode in data:
             if queryset in episode["name"]:
                 new_episode = Episode(episode["id"], episode["name"], episode["air_date"], episode["episode"], episode["characters"], episode["url"], episode["created"])
                 lista_resultados_episodios.append(new_episode)
-        response = requests.get(f"https://rickandmortyapi.com/api/character/")
+        response = requests.get(f"https://integracion-rick-morty-api.herokuapp.com/api/character")
         data = json.loads(response.text.encode("utf-8"))
         data = data["results"]
         for personaje in data:
             if queryset in personaje["name"]:
                 new_character = Character(personaje["id"], personaje["name"],personaje["status"],personaje["species"],personaje["type"], personaje["gender"],personaje["origin"],personaje["location"], personaje["image"], personaje["episode"], personaje["url"])
                 lista_resultados_personajes.append(new_character)
-        response = requests.get(f"https://rickandmortyapi.com/api/location/")
+        response = requests.get(f"https://integracion-rick-morty-api.herokuapp.com/api/location")
         data = json.loads(response.text.encode("utf-8"))
         data = data["results"]
         for lugar in data:
@@ -87,7 +87,7 @@ def principal(request):
     return HttpResponse(document)
 
 def episode(request, id):
-    url = "https://rickandmortyapi.com/api/episode/"+id
+    url = "https://integracion-rick-morty-api.herokuapp.com/api/episode/"+id
     response = requests.get(url)
     data = json.loads(response.text.encode("utf-8"))
     information_list = []
@@ -106,7 +106,7 @@ def episode(request, id):
     return HttpResponse(document)
     
 def character(request, id):
-    url = "https://rickandmortyapi.com/api/character/"+id
+    url = "https://integracion-rick-morty-api.herokuapp.com/api/character/"+id
     response = requests.get(url)
     data = json.loads(response.text.encode("utf-8"))
     information_list = []
@@ -135,7 +135,7 @@ def character(request, id):
     return HttpResponse(document)
 
 def locations(request, id):
-    url = "https://rickandmortyapi.com/api/location/"+id
+    url = "https://integracion-rick-morty-api.herokuapp.com/api/location/"+id
     response = requests.get(url)
     data = json.loads(response.text.encode("utf-8"))
     new_location = Location(data["name"], data["url"])
