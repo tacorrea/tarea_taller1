@@ -8,18 +8,17 @@ import json
 
 class Episode:
 
-    def __init__(self, ident, name, air_date, episode, characters, url, created):
+    def __init__(self, ident, name, air_date, episode, characters, created):
         self.id = ident
         self.name = name
         self.air_date = air_date
         self.episode = episode
         self.characters = characters
-        self.url = "https://integracion-rick-morty-api.herokuapp.com/api/episode{}".format(id)
         self.created = created
 
 class Character:
 
-    def __init__(self, ident, name, status, species, tipo, gender, origin, location, image, episode, url):
+    def __init__(self, ident, name, status, species, tipo, gender, origin, location, image, episode, created):
         self.id = ident
         self.name = name
         self.status = status
@@ -30,32 +29,28 @@ class Character:
         self.location = location
         self.image = image
         self.episode = episode
-        self.url = url
+        self.created = created
 
 class Location:
-    
-    def __init__(self, name, url):
+    def __init__(self, ident, name):
+        self.id = ident
         self.name = name
-        self.url = url
         self.dimension = ""
         self.tipo = ""
         self.personajes = []
-        self.id = ""
 
 def principal(request):
-    response = requests.get(f"https://integracion-rick-morty-api.herokuapp.com/api/episode/")
+    response = requests.get("https://integracion-rick-morty-api.herokuapp.com/graphql/?query={episodes{info{count,pages,next},results{id}}}")
     data = json.loads(response.text.encode("utf-8"))
-    data = data["results"]
     episode_list = []
-    for episode in data:
-        new_episode = Episode(episode["id"], episode["name"], episode["air_date"], episode["episode"], episode["characters"], episode["url"], episode["created"])
-        episode_list.append(new_episode)
-    response = requests.get(f"https://integracion-rick-morty-api.herokuapp.com/api/episode/?page=2")
-    data = json.loads(response.text.encode("utf-8"))
-    data = data["results"]
-    for episode in data:
-        new_episode = Episode(episode["id"], episode["name"], episode["air_date"], episode["episode"], episode["characters"], episode["url"], episode["created"])
-        episode_list.append(new_episode)
+    for x in range(0, data["data"]["episodes"]["info"]["pages"]):
+        pagina = str(x+1)
+        response = requests.get("https://integracion-rick-morty-api.herokuapp.com/graphql/?query={episodes(page:"+pagina+"){info{count,pages,next},results{id, name, air_date, episode, characters{id, name, status, species, type, gender, origin{id},location{id}, image, episode{id}, created}, created }}}")
+        data = json.loads(response.text.encode("utf-8"))
+        episodio = data["data"]["episodes"]["results"]
+        for episode in episodio:
+            new_episode = Episode(episode["id"], episode["name"], episode["air_date"], episode["episode"], episode["characters"], episode["created"])
+            episode_list.append(new_episode)
     principal_template = get_template("principal.html")
     document = principal_template.render({"episodios":episode_list})
     queryset = request.GET.get("buscar")
@@ -63,57 +58,41 @@ def principal(request):
         lista_resultados_episodios = []
         lista_resultados_personajes = []
         lista_resultados_lugares = []
-        print(queryset)
-        print("ahyak")
-        response = requests.get(f"https://integracion-rick-morty-api.herokuapp.com/api/episode")
+        response = requests.get("https://integracion-rick-morty-api.herokuapp.com/graphql/?query={episodes{info{pages},results{id}}}")
         data = json.loads(response.text.encode("utf-8"))
-        data = data["results"]
-        for episode in data:
-            if queryset in episode["name"]:
-                new_episode = Episode(episode["id"], episode["name"], episode["air_date"], episode["episode"], episode["characters"], episode["url"], episode["created"])
-                lista_resultados_episodios.append(new_episode)
-        response = requests.get(f"https://integracion-rick-morty-api.herokuapp.com/api/episode/?page=2")
-        data = json.loads(response.text.encode("utf-8"))
-        data = data["results"]
-        for episode in data:
-            if queryset in episode["name"]:
-                new_episode = Episode(episode["id"], episode["name"], episode["air_date"], episode["episode"], episode["characters"], episode["url"], episode["created"])
-                lista_resultados_episodios.append(new_episode)
-    
-        response = requests.get(f"https://integracion-rick-morty-api.herokuapp.com/api/character")
-        data = json.loads(response.text.encode("utf-8"))
-        data = data["results"]
-        for personaje in data:
-            if queryset in personaje["name"]:
-                new_character = Character(personaje["id"], personaje["name"],personaje["status"],personaje["species"],personaje["type"], personaje["gender"],personaje["origin"],personaje["location"], personaje["image"], personaje["episode"], personaje["url"])
-                lista_resultados_personajes.append(new_character)
-        for x in range(2,20):
-            url = "https://integracion-rick-morty-api.herokuapp.com/api/character/?page="+str(x)
-            response = requests.get(url)
+        for x in range(0, data["data"]["episodes"]["info"]["pages"]):
+            pagina = str(x+1)
+            response = requests.get("https://integracion-rick-morty-api.herokuapp.com/graphql/?query={episodes(page:"+pagina+"){info{pages},results{id, name, air_date, episode, characters{id, name, status, species, type, gender, origin{id},location{id}, image, episode{id}, created}, created }}}")
             data = json.loads(response.text.encode("utf-8"))
-            data = data["results"]
-            for personaje in data:
+            episodio = data["data"]["episodes"]["results"]
+            for episode in episodio:
+                if queryset in episode["name"]:
+                    new_episode = Episode(episode["id"], episode["name"], episode["air_date"], episode["episode"], episode["characters"], episode["created"])
+                    lista_resultados_episodios.append(new_episode)
+        print(lista_resultados_episodios)
+        response = requests.get("https://integracion-rick-morty-api.herokuapp.com/graphql/?query={characters{info{pages},results{id}}}")
+        data = json.loads(response.text.encode("utf-8"))
+        for x in range(0, data["data"]["characters"]["info"]["pages"]):
+            pagina = str(x+1)
+            response = requests.get("https://integracion-rick-morty-api.herokuapp.com/graphql/?query={characters(page:"+pagina+"){info{pages},results{id, name, status, species, type, gender, origin{id},location{id}, image, episode{id}, created}}}")
+            data = json.loads(response.text.encode("utf-8"))
+            personajes = data["data"]["characters"]["results"]
+            
+            for personaje in personajes:
                 if queryset in personaje["name"]:
                     new_character = Character(personaje["id"], personaje["name"],personaje["status"],personaje["species"],personaje["type"], personaje["gender"],personaje["origin"],personaje["location"], personaje["image"], personaje["episode"], personaje["url"])
                     lista_resultados_personajes.append(new_character)
-        
-        response = requests.get(f"https://integracion-rick-morty-api.herokuapp.com/api/location")
+        print(lista_resultados_personajes)
+
+        response = requests.get("https://integracion-rick-morty-api.herokuapp.com/graphql/?query={locations{info{pages},results{id}}}")
         data = json.loads(response.text.encode("utf-8"))
-        data = data["results"]
-        for lugar in data:
-            if queryset in lugar["name"]:
-                new_location = Location(lugar["name"], lugar["url"])
-                new_location.dimension = lugar["dimension"]
-                new_location.tipo = lugar["type"]
-                new_location.personajes = lugar["residents"]
-                new_location.id = lugar["id"]
-                lista_resultados_lugares.append(new_location)
-        for x in range(2,4):
-            url = "https://integracion-rick-morty-api.herokuapp.com/api/location/?page="+str(x)
-            response = requests.get(url)
+
+        for x in range(0, data["data"]["locations"]["info"]["pages"]):
+            pagina = str(x+1)
+            response = requests.get("https://integracion-rick-morty-api.herokuapp.com/graphql/?query={locations(page:"+pagina+"){info{count},results{id, name, type, dimension, residents{id}, created}}}")
             data = json.loads(response.text.encode("utf-8"))
-            data = data["results"]
-            for lugar in data:
+            locacion = data["data"]["locations"]["results"]
+            for lugar in locacion:
                 if queryset in lugar["name"]:
                     new_location = Location(lugar["name"], lugar["url"])
                     new_location.dimension = lugar["dimension"]
@@ -121,22 +100,23 @@ def principal(request):
                     new_location.personajes = lugar["residents"]
                     new_location.id = lugar["id"]
                     lista_resultados_lugares.append(new_location)
+        print(lista_resultados_lugares)
         document = principal_template.render({"episodios":episode_list, "busqueda_personajes": lista_resultados_personajes, "busqueda_episodios": lista_resultados_episodios, "busqueda_lugares":lista_resultados_lugares})
     return HttpResponse(document)
 
 def episode(request, id):
-    url = "https://integracion-rick-morty-api.herokuapp.com/api/episode/"+id
+    url = "https://integracion-rick-morty-api.herokuapp.com/graphql/?query={episode(id:"+id+"){id, name, air_date, episode, characters{id, name, status, species, type, gender, origin{id},location{id}, image, episode{id}, created}, created }}"
     response = requests.get(url)
     data = json.loads(response.text.encode("utf-8"))
+    datos = data["data"]["episode"]
     information_list = []
     characters_list = []
-    information_list.append(data["name"])
-    information_list.append(data["air_date"])
-    information_list.append(data["episode"])
-    for personaje in data["characters"]:    
-        response = requests.get(personaje)
-        data = json.loads(response.text.encode("utf-8"))
-        new_character = Character(data["id"], data["name"],data["status"],data["species"],data["type"], data["gender"],data["origin"],data["location"], data["image"], data["episode"], data["url"])
+    information_list.append(datos["id"])
+    information_list.append(datos["name"])
+    information_list.append(datos["air_date"])
+    information_list.append(datos["episode"])
+    for personaje in datos["characters"]:    
+        new_character = Character(personaje["id"], personaje["name"],personaje["status"],personaje["species"],personaje["type"], personaje["gender"],personaje["origin"],personaje["location"], personaje["image"], personaje["episode"], personaje["created"])
         characters_list.append(new_character)
     information_list.append(information_list)
     episode_template = get_template("episodio.html")
@@ -144,9 +124,10 @@ def episode(request, id):
     return HttpResponse(document)
     
 def character(request, id):
-    url = "https://integracion-rick-morty-api.herokuapp.com/api/character/"+id
+    url = "https://integracion-rick-morty-api.herokuapp.com/graphql/?query={character(id:"+id+"){id, name, status, species, type, gender, origin{id, name},location{id, name}, image, episode{id, name, air_date, episode, characters{id}, created}, created}}"
     response = requests.get(url)
     data = json.loads(response.text.encode("utf-8"))
+    data = data["data"]["character"]
     information_list = []
     episode_list = []
     information_list.append(data["name"])
@@ -155,37 +136,29 @@ def character(request, id):
     information_list.append(data["type"])
     information_list.append(data["gender"])
     imagen = data["image"]
-    lugar_origen = Location(data["origin"]["name"],data["origin"]["url"])
-    respuesta = requests.get(data["origin"]["url"])
-    datos = json.loads(respuesta.text.encode("utf-8"))
-    lugar_origen.id = datos["id"]
-    lugar_locacion = Location(data["location"]["name"], data["location"]["url"])
-    response = requests.get(data["location"]["url"])
-    datoss = json.loads(response.text.encode("utf-8"))
-    lugar_locacion.id = datoss["id"]
+    lugar_origen = Location(data["origin"]["id"], data["origin"]["name"])
+    lugar_locacion = Location(data["location"]["id"], data["location"]["name"])
     for episodio in data["episode"]:
-        response = requests.get(episodio)
-        data = json.loads(response.text.encode("utf-8"))
-        new_episode = Episode(data["id"], data["name"], data["air_date"], data["episode"], data["characters"], data["url"], data["created"])
+        new_episode = Episode(episodio["id"], episodio["name"], episodio["air_date"], episodio["episode"], episodio["characters"], episodio["created"])
         episode_list.append(new_episode)
     character_template = get_template("personaje.html")
     document = character_template.render({"personaje":information_list, "lista_episodios":episode_list, "imagen": imagen, "lugar": lugar_origen, "location": lugar_locacion})
     return HttpResponse(document)
 
 def locations(request, id):
-    url = "https://integracion-rick-morty-api.herokuapp.com/api/location/"+id
+    url = "https://integracion-rick-morty-api.herokuapp.com/graphql/?query={location(id:"+id+"){id, name, type, dimension, residents{id, name, status, species, type, gender, origin{id, name},location{id, name}, image, episode{id, name, air_date, episode, characters{id}, created}, created}}}"
     response = requests.get(url)
-    data = json.loads(response.text.encode("utf-8"))
-    new_location = Location(data["name"], data["url"])
+    data = response.json()
+    data = data["data"]["location"]
+    new_location = Location(data["id"], data["name"])
     new_location.dimension = data["dimension"]
     new_location.tipo = data["type"]
     new_location.personajes = data["residents"]
     new_location.id = data["id"]
     character_list = []
     for personaje in new_location.personajes:
-        response = requests.get(personaje)
-        data = json.loads(response.text.encode("utf-8"))
-        new_character = Character(data["id"], data["name"],data["status"],data["species"],data["type"], data["gender"],data["origin"],data["location"], data["image"], data["episode"], data["url"])
+        data = personaje
+        new_character = Character(data["id"], data["name"],data["status"],data["species"],data["type"], data["gender"],data["origin"],data["location"], data["image"], data["episode"], data["created"])
         character_list.append(new_character)
     character_template = get_template("lugar.html")
     document = character_template.render({"lugar":new_location, "lista_personajes":character_list})
