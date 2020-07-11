@@ -16,10 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from prueba.views import principal, episode, character, locations
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("principal", principal),
     path("episode/<str:id>", episode, name="episode"),
     path("character/<str:id>", character, name="character"),
     path("locations/<str:id>", locations, name="locations")
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
